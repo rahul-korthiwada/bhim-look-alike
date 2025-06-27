@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { PaymentFlowData } from '../types';
-import { THEME_COLORS, IconDropdownTriangle, IconExclamationCircle, IconUpiLogo } from '../constants';
+import { THEME_COLORS } from '../constants';
 import PinKeypad from '../components/PinKeypad';
+import { IconDropdownTriangle, IconExclamationCircle, IconUpiLogo } from '../assets/icons';
 
 interface EnterPinScreenProps {
   paymentDetails: PaymentFlowData;
@@ -25,82 +28,192 @@ const EnterPinScreen: React.FC<EnterPinScreenProps> = ({ paymentDetails, onSubmi
     if (pin.length === PIN_LENGTH) {
       onSubmit(pin);
     } else {
-        // This case should ideally not be reachable if SUBMIT is only enabled for full PIN
-        alert("Please enter a 6-digit PIN.");
+        Alert.alert("Please enter a 6-digit PIN.");
     }
   };
   
   useEffect(() => {
     if (pin.length === PIN_LENGTH) {
-      // Optional: Auto-submit when PIN length is reached
       // handleSubmit(); 
     }
   }, [pin]);
 
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: THEME_COLORS.pinInputBackground, color: THEME_COLORS.pinInputText }}>
+    <View style={styles.container}>
       {/* Header */}
-      <div className="p-4 flex items-center justify-start sticky top-0 z-10" style={{ backgroundColor: THEME_COLORS.pinInputBackground }}>
-        <button onClick={onCancel} className="text-sm font-medium hover:opacity-75" style={{color: THEME_COLORS.textLink}}>
-          CANCEL
-        </button>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onCancel}>
+          <Text style={styles.cancelButton}>CANCEL</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Content Area */}
-      <div className="flex-grow p-5 flex flex-col items-center">
+      <View style={styles.content}>
         {/* Payment Summary */}
-        <div className="w-full mb-8">
-            <div className="flex justify-between items-start mb-1">
-                <div>
-                    <p className="text-xs text-gray-600">State Bank Of India</p>
-                    <p className="text-sm font-medium">XXXX{paymentDetails.selectedAccount?.accountNumberLast4}</p>
-                </div>
-                {IconUpiLogo}
-            </div>
-            <div className="border-t border-gray-200 my-3"></div>
-            <div className="flex justify-between items-center">
-                <div>
-                    <p className="text-xs text-gray-600">To:</p>
-                    <p className="text-sm font-medium">{paymentDetails.recipientName}</p>
-                </div>
-                 <div className="flex items-center">
-                    <p className="text-sm font-semibold">₹{parseFloat(paymentDetails.amount || "0").toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                    {React.cloneElement(IconDropdownTriangle, {className: "w-3 h-3 ml-1 text-gray-500"})}
-                </div>
-            </div>
-             {paymentDetails.remarks && <p className="text-xs text-gray-500 mt-0.5">Note: {paymentDetails.remarks}</p>}
-        </div>
+        <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+                <View>
+                    <Text style={styles.bankName}>State Bank Of India</Text>
+                    <Text style={styles.accountNumber}>XXXX{paymentDetails.selectedAccount?.accountNumberLast4}</Text>
+                </View>
+                <SvgXml xml={IconUpiLogo} width={40} height={20} />
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+                <View>
+                    <Text style={styles.recipientLabel}>To:</Text>
+                    <Text style={styles.recipientName}>{paymentDetails.recipientName}</Text>
+                </View>
+                 <View style={styles.amountContainer}>
+                    <Text style={styles.amount}>₹{parseFloat(paymentDetails.amount || "0").toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>
+                    <SvgXml xml={IconDropdownTriangle} width={12} height={12} color={THEME_COLORS.textSecondary} />
+                </View>
+            </View>
+             {paymentDetails.remarks && <Text style={styles.remarks}>Note: {paymentDetails.remarks}</Text>}
+        </View>
         
 
-        <p className="text-sm font-semibold mb-3">ENTER 6-DIGIT UPI PIN</p>
-        <div className="flex space-x-2 mb-8">
+        <Text style={styles.pinLabel}>ENTER 6-DIGIT UPI PIN</Text>
+        <View style={styles.pinContainer}>
           {[...Array(PIN_LENGTH)].map((_, i) => (
-            <div
+            <View
               key={i}
-              className="w-5 h-5 border-2 rounded-full flex items-center justify-center"
-              style={{ borderColor: pin.length > i ? THEME_COLORS.primaryAction : THEME_COLORS.textPlaceholder }}
+              style={[styles.pinDot, { borderColor: pin.length > i ? THEME_COLORS.primaryAction : THEME_COLORS.textPlaceholder }]}
             >
-              {pin.length > i && <div className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: THEME_COLORS.primaryAction}}></div>}
-            </div>
+              {pin.length > i && <View style={[styles.pinDotFilled, {backgroundColor: THEME_COLORS.primaryAction}]} />}
+            </View>
           ))}
-        </div>
+        </View>
 
         {/* Warning Message */}
-        <div 
-            className="w-full p-3 mb-auto rounded-md flex items-start"
-            style={{backgroundColor: THEME_COLORS.warningBackground, border: `1px solid ${THEME_COLORS.warningBorder}`}}
-        >
-            {React.cloneElement(IconExclamationCircle, {className: "w-7 h-7 mr-2.5 flex-shrink-0", style: {color: THEME_COLORS.warningIcon}})}
-            <p className="text-xs leading-snug" style={{color: THEME_COLORS.warningText}}>
-                You are SENDING <span className="font-semibold">₹{parseFloat(paymentDetails.amount || "0").toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span> from your account to <span className="font-semibold">{paymentDetails.recipientName}</span>.
-            </p>
-        </div>
-      </div>
+        <View style={styles.warningContainer}>
+            <SvgXml xml={IconExclamationCircle} width={28} height={28} color={THEME_COLORS.warningIcon} />
+            <Text style={styles.warningText}>
+                You are SENDING <Text style={styles.bold}>₹{parseFloat(paymentDetails.amount || "0").toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text> from your account to <Text style={styles.bold}>{paymentDetails.recipientName}</Text>.
+            </Text>
+        </View>
+      </View>
 
       <PinKeypad onKeyPress={handleKeyPress} onSubmit={handleSubmit} />
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.pinInputBackground,
+  },
+  header: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  cancelButton: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME_COLORS.textLink,
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+    alignItems: 'center',
+  },
+  summaryContainer: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  bankName: {
+    fontSize: 12,
+    color: 'gray',
+  },
+  accountNumber: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME_COLORS.pinInputText,
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+    marginVertical: 12,
+  },
+  recipientLabel: {
+    fontSize: 12,
+    color: 'gray',
+  },
+  recipientName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME_COLORS.pinInputText,
+  },
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  amount: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: THEME_COLORS.pinInputText,
+    marginRight: 4,
+  },
+  remarks: {
+    fontSize: 12,
+    color: 'gray',
+    marginTop: 2,
+  },
+  pinLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: THEME_COLORS.pinInputText,
+  },
+  pinContainer: {
+    flexDirection: 'row',
+    marginBottom: 32,
+  },
+  pinDot: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderRadius: 10,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinDotFilled: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  warningContainer: {
+    width: '100%',
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: THEME_COLORS.warningBackground,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.warningBorder,
+    marginTop: 'auto',
+  },
+  warningText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 12,
+    lineHeight: 16,
+    color: THEME_COLORS.warningText,
+  },
+  bold: {
+    fontWeight: 'bold',
+  },
+});
 
 export default EnterPinScreen;

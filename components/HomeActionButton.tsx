@@ -1,8 +1,9 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { THEME_COLORS } from '../constants';
 
 interface HomeActionButtonProps {
-  icon: React.ReactElement<React.SVGProps<SVGSVGElement>>; // Changed type here
+  icon: React.ReactElement;
   label: string;
   onClick: () => void;
   badgeText?: string;
@@ -10,29 +11,66 @@ interface HomeActionButtonProps {
 
 const HomeActionButton: React.FC<HomeActionButtonProps> = ({ icon, label, onClick, badgeText }) => {
   return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center text-center relative transform active:scale-95 transition-transform"
-      style={{ color: THEME_COLORS.textPrimary }}
+    <TouchableOpacity
+      onPress={onClick}
+      style={styles.container}
       aria-label={label}
     >
       {badgeText && (
-        <span 
-          className="absolute -top-1 -left-1 text-xs px-1.5 py-0.5 rounded-full font-semibold z-10"
-          style={{ backgroundColor: THEME_COLORS.pkAvatarBg, color: THEME_COLORS.textPrimary }} // Using PK avatar color for badge
-        >
-          {badgeText}
-        </span>
+        <View style={[styles.badge, { backgroundColor: THEME_COLORS.pkAvatarBg }]}>
+          <Text style={styles.badgeText}>{badgeText}</Text>
+        </View>
       )}
-      <div 
-        className="w-16 h-16 rounded-full flex items-center justify-center mb-1.5 shadow-md"
-        style={{ backgroundColor: THEME_COLORS.surfaceLight }}
-      >
-        {React.cloneElement(icon, { className: "w-7 h-7", style: { color: '#82c9ff' /* Light blue for icons */ }})}
-      </div>
-      <span className="text-xs font-medium leading-tight max-w-[70px]">{label}</span>
-    </button>
+      <View style={[styles.iconContainer, { backgroundColor: THEME_COLORS.surfaceLight }]}>
+        {React.cloneElement(icon, { width: 28, height: 28, color: '#82c9ff' })}
+      </View>
+      <Text style={styles.label}>{label}</Text>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    padding: 8,
+    width: '33%',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    zIndex: 1,
+  },
+  badgeText: {
+    color: THEME_COLORS.textPrimary,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  label: {
+    color: THEME_COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    maxWidth: 70,
+  },
+});
 
 export default HomeActionButton;

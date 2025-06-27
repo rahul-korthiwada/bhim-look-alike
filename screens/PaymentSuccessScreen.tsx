@@ -1,6 +1,9 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { PaymentFlowData } from '../types';
-import { APP_NAME, THEME_COLORS, IconLargeCheckVerified, IconShare, IconDownloadArrow, MOCK_REFERRAL_BANNER_URL } from '../constants';
+import { APP_NAME, THEME_COLORS, MOCK_REFERRAL_BANNER_URL } from '../constants';
+import { IconLargeCheckVerified, IconShare, IconDownloadArrow } from '../assets/icons';
 
 interface PaymentSuccessScreenProps {
   paymentDetails: PaymentFlowData;
@@ -10,78 +13,199 @@ interface PaymentSuccessScreenProps {
 
 const PaymentSuccessScreen: React.FC<PaymentSuccessScreenProps> = ({ paymentDetails, onSendAgain, onGoHome }) => {
   const amountPaid = parseFloat(paymentDetails.amount || '0').toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const transactionTime = (Math.random() * 2 + 0.5).toFixed(2); // Mock transaction time
+  const transactionTime = (Math.random() * 2 + 0.5).toFixed(2);
   const transactionDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
-    <div className="flex flex-col h-full text-white" style={{ backgroundColor: THEME_COLORS.successGreenScreen }}>
+    <View style={styles.container}>
       {/* Custom Header Text */}
-      <div className="p-4 text-center text-lg font-semibold" style={{ backgroundColor: '#105020' /* Slightly darker green */ }}>
-        {APP_NAME} - Bharat's Own Payments App
-      </div>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>{APP_NAME} - Bharat's Own Payments App</Text>
+      </View>
 
       {/* Main Content */}
-      <div className="flex-grow flex flex-col items-center justify-center p-5 text-center">
-        {IconLargeCheckVerified}
-        <p className="text-xl font-semibold mt-4 mb-1"><span className="text-green-400">₹</span> Paid</p>
-        <p className="text-5xl font-bold mb-4">₹{amountPaid}</p>
-        <div className="px-3 py-1 mb-6 rounded-full text-xs font-medium" style={{ backgroundColor: THEME_COLORS.successBannerGreen }}>
-          ⚡ Paid in {transactionTime} Seconds
-        </div>
-      </div>
+      <View style={styles.mainContent}>
+        <SvgXml xml={IconLargeCheckVerified} width={80} height={80} />
+        <Text style={styles.paidText}><Text style={{color: 'green'}}>₹</Text> Paid</Text>
+        <Text style={styles.amount}>₹{amountPaid}</Text>
+        <View style={styles.speedBadge}>
+          <Text style={styles.speedBadgeText}>⚡ Paid in {transactionTime} Seconds</Text>
+        </View>
+      </View>
       
       {/* Transaction Details Section */}
-      <div className="bg-black bg-opacity-20 p-5 rounded-t-2xl">
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-400">Banking Name</span>
-            <span className="text-sm font-medium">{paymentDetails.recipientName}</span>
-          </div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-400">Transaction ID</span>
-            <span className="text-sm font-medium">{paymentDetails.transactionAttemptId}</span>
-          </div>
-           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">Date & Time</span>
-            <span className="text-sm font-medium">{transactionDate}</span>
-          </div>
-        </div>
+      <View style={styles.detailsContainer}>
+        <View style={styles.detailsSection}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Banking Name</Text>
+            <Text style={styles.detailValue}>{paymentDetails.recipientName}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Transaction ID</Text>
+            <Text style={styles.detailValue}>{paymentDetails.transactionAttemptId}</Text>
+          </View>
+           <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Date & Time</Text>
+            <Text style={styles.detailValue}>{transactionDate}</Text>
+          </View>
+        </View>
 
-        <div className="flex space-x-3 mb-4">
-          <button className="flex-1 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center transition-opacity">
-            {IconDownloadArrow} More details
-          </button>
-          <button className="flex-1 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white py-2.5 rounded-lg text-sm font-medium flex items-center justify-center transition-opacity">
-            {IconShare} Share
-          </button>
-        </div>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.actionButton}>
+            <SvgXml xml={IconDownloadArrow} width={20} height={20} color="white" />
+            <Text style={styles.actionButtonText}>More details</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <SvgXml xml={IconShare} width={20} height={20} color="white" />
+            <Text style={styles.actionButtonText}>Share</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Referral Banner */}
-        <div className="mb-4">
-          <img src={MOCK_REFERRAL_BANNER_URL} alt="Referral Banner" className="w-full rounded-lg" />
-        </div>
+        <View style={styles.bannerContainer}>
+          <Image source={{ uri: MOCK_REFERRAL_BANNER_URL }} style={styles.banner} />
+        </View>
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
-          <button 
-            onClick={onSendAgain}
-            className="flex-1 py-3 rounded-lg text-sm font-semibold transition-colors"
-            style={{ backgroundColor: THEME_COLORS.surfaceLight, color: THEME_COLORS.textPrimary }}
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity 
+            onPress={onSendAgain}
+            style={[styles.bottomButton, { backgroundColor: THEME_COLORS.surfaceLight }]}
           >
-            Send Again
-          </button>
-          <button 
-            onClick={onGoHome}
-            className="flex-1 py-3 rounded-lg text-sm font-semibold transition-colors"
-            style={{ backgroundColor: THEME_COLORS.primaryAction, color: 'black' }}
+            <Text style={[styles.bottomButtonText, { color: THEME_COLORS.textPrimary }]}>Send Again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={onGoHome}
+            style={[styles.bottomButton, { backgroundColor: THEME_COLORS.primaryAction }]}
           >
-            Home
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 text-center mt-3">POWERED BY NPCI</p>
-      </div>
-    </div>
+            <Text style={[styles.bottomButtonText, { color: 'black' }]}>Home</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.footerText}>POWERED BY NPCI</Text>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.successGreenScreen,
+  },
+  header: {
+    padding: 16,
+    backgroundColor: '#105020',
+  },
+  headerText: {
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  mainContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  paidText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 4,
+    color: 'white',
+  },
+  amount: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: 'white',
+  },
+  speedBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: THEME_COLORS.successBannerGreen,
+  },
+  speedBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'white',
+  },
+  detailsContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  detailsSection: {
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: 'gray',
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'white',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(128, 128, 128, 0.5)',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 4,
+  },
+  actionButtonText: {
+    color: 'white',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  bannerContainer: {
+    marginBottom: 16,
+  },
+  banner: {
+    width: '100%',
+    height: 80,
+    borderRadius: 8,
+  },
+  bottomButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  bottomButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  bottomButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  footerText: {
+    fontSize: 12,
+    color: 'gray',
+    textAlign: 'center',
+    marginTop: 12,
+  },
+});
 
 export default PaymentSuccessScreen;

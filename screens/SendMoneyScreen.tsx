@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, FlatList, Alert } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { UserProfile, Contact } from '../types';
-import { THEME_COLORS, IconChevronLeft, IconSearch, IconDotsVertical, IconStar, MOCK_CONTACTS } from '../constants';
+import { THEME_COLORS, MOCK_CONTACTS } from '../constants';
 import NumericKeypad from '../components/NumericKeypad';
+import { IconChevronLeft, IconSearch, IconDotsVertical, IconStar } from '../assets/icons';
 
 interface SendMoneyScreenProps {
   onClose: () => void;
-  // onSubmit: (data: { recipientId: string; amount: string; remarks?: string }) => void; // Old onSubmit
-  onProceed: (recipient: Partial<Contact> & {name: string, upiId: string, avatarInitials?: string, avatarColor?: string}) => void; // New proceed handler
+  onProceed: (recipient: Partial<Contact> & {name: string, upiId: string, avatarInitials?: string, avatarColor?: string}) => void;
   userProfile: UserProfile;
 }
 
@@ -25,31 +27,11 @@ const SendMoneyScreen: React.FC<SendMoneyScreenProps> = ({ onClose, onProceed, u
     }
   };
 
-  useEffect(() => {
-    // If mobile number is 10 digits, consider it for proceeding
-    if (mobileNumber.length === 10) {
-        // Check if this number exists in contacts
-        const existingContact = contacts.find(c => c.phoneNumber === mobileNumber || c.upiId.startsWith(mobileNumber + '@'));
-        if (existingContact) {
-            // Delay slightly to allow user to see the number, then proceed
-            // setTimeout(() => onProceed(existingContact), 200); 
-            // For now, let's not auto-proceed. User must click or we'll add a "Next" button for direct number entry.
-            // For this iteration, clicking a contact or a new "Pay to this number" button (if added) will proceed.
-        } else {
-            // Number not in contacts. Could enable a "Pay to this number" button.
-            // For now, onProceed will be triggered by contact click.
-            // Or, we can create a temporary contact object.
-            // Let's assume for now, direct number entry will need explicit action.
-        }
-    }
-  }, [mobileNumber, contacts, onProceed]);
-
-
   const filteredContacts = contacts.filter(contact => {
     const lowerSearchTerm = searchTerm.toLowerCase();
     const matchesSearch = contact.name.toLowerCase().includes(lowerSearchTerm) || 
                           contact.upiId.toLowerCase().includes(lowerSearchTerm) ||
-                          (contact.phoneNumber && contact.phoneNumber.includes(searchTerm)); // searchTerm for phone can be direct
+                          (contact.phoneNumber && contact.phoneNumber.includes(searchTerm));
     if (activeTab === 'favourites') {
       return contact.isFavorite && matchesSearch;
     }
@@ -61,133 +43,263 @@ const SendMoneyScreen: React.FC<SendMoneyScreenProps> = ({ onClose, onProceed, u
   };
 
   const handlePayToEnteredNumber = () => {
-    if (mobileNumber.length > 0 && mobileNumber.length <= 10) { // Basic validation
+    if (mobileNumber.length > 0 && mobileNumber.length <= 10) {
         onProceed({
-            name: `Mobile: ${mobileNumber}`, // Generic name for display
-            upiId: `${mobileNumber}@upi`, // Assume a default UPI format
+            name: `Mobile: ${mobileNumber}`,
+            upiId: `${mobileNumber}@upi`,
             phoneNumber: mobileNumber,
             avatarInitials: mobileNumber.substring(0,2),
-            avatarColor: THEME_COLORS.surfaceLight // A generic color
+            avatarColor: THEME_COLORS.surfaceLight
         });
     } else {
-        alert("Please enter a valid mobile number.");
+        Alert.alert("Please enter a valid mobile number.");
     }
   };
 
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: THEME_COLORS.background, color: THEME_COLORS.textPrimary }}>
+    <View style={styles.container}>
       {/* Header */}
-      <div className="p-3 flex items-center sticky top-0 z-10" style={{ backgroundColor: THEME_COLORS.surface }}>
-        <button onClick={onClose} className="p-2 mr-2" aria-label="Go back">
-          {IconChevronLeft}
-        </button>
-        {/* Title removed to match screenshot more closely, as it's implicitly part of the content */}
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onClose} style={styles.backButton}>
+          <SvgXml xml={IconChevronLeft} width={24} height={24} color={THEME_COLORS.textPrimary} />
+        </TouchableOpacity>
+      </View>
 
       {/* Content Area */}
-      <div className="flex-grow p-4 overflow-y-auto">
-        <h1 className="text-2xl font-semibold mb-1">Enter mobile number to send money</h1>
+      <View style={styles.content}>
+        <Text style={styles.title}>Enter mobile number to send money</Text>
         
-        <div className="flex items-baseline mb-1">
-          <span className="text-3xl mr-2" style={{color: THEME_COLORS.textSecondary}}>+91</span>
-          <input
-            type="text"
+        <View style={styles.inputContainer}>
+          <Text style={styles.countryCode}>+91</Text>
+          <TextInput
             value={mobileNumber}
-            readOnly 
-            className="text-3xl bg-transparent border-none focus:outline-none p-0 flex-grow tracking-wider"
-            placeholder="" 
-            style={{ caretColor: THEME_COLORS.primaryAction, letterSpacing: mobileNumber.length > 0 ? '0.1em' : 'normal' }}
+            editable={false}
+            style={styles.input}
+            placeholder=""
+            placeholderTextColor={THEME_COLORS.textPlaceholder}
           />
-        </div>
+        </View>
         { mobileNumber.length > 0 && mobileNumber.length <= 10 && (
-            <button 
-                onClick={handlePayToEnteredNumber}
-                className="w-full mt-2 mb-3 py-2.5 rounded-md text-sm font-semibold"
-                style={{backgroundColor: THEME_COLORS.primaryAction, color: 'black'}}
+            <TouchableOpacity 
+                onPress={handlePayToEnteredNumber}
+                style={styles.proceedButton}
             >
-                Proceed with {mobileNumber}
-            </button>
+                <Text style={styles.proceedButtonText}>Proceed with {mobileNumber}</Text>
+            </TouchableOpacity>
         )}
 
 
-        <p className="text-sm text-center my-3" style={{ color: THEME_COLORS.textLink, cursor: 'pointer' }} onClick={() => { setSearchTerm(''); setActiveTab('contacts'); }}>
-          Or choose from your contacts
-        </p>
+        <TouchableOpacity onPress={() => { setSearchTerm(''); setActiveTab('contacts'); }}>
+          <Text style={styles.linkText}>Or choose from your contacts</Text>
+        </TouchableOpacity>
 
         {/* Tabs */}
-        <div className="flex mb-4">
-          <button 
-            onClick={() => setActiveTab('favourites')}
-            className={`flex-1 py-2 text-sm font-medium border-b-2 ${activeTab === 'favourites' ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-400 hover:text-gray-200'}`}
-            style={activeTab === 'favourites' ? {borderColor: THEME_COLORS.primaryAction, color: THEME_COLORS.primaryAction} : {color: THEME_COLORS.textSecondary}}
+        <View style={styles.tabs}>
+          <TouchableOpacity 
+            onPress={() => setActiveTab('favourites')}
+            style={[styles.tab, activeTab === 'favourites' && styles.activeTab]}
           >
-            Favourites
-          </button>
-          <button 
-            onClick={() => setActiveTab('contacts')}
-            className={`flex-1 py-2 text-sm font-medium border-b-2 ${activeTab === 'contacts' ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-400 hover:text-gray-200'}`}
-             style={activeTab === 'contacts' ? {borderColor: THEME_COLORS.primaryAction, color: THEME_COLORS.primaryAction} : {color: THEME_COLORS.textSecondary}}
+            <Text style={[styles.tabText, activeTab === 'favourites' && styles.activeTabText]}>Favourites</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setActiveTab('contacts')}
+            style={[styles.tab, activeTab === 'contacts' && styles.activeTab]}
           >
-            Contacts
-          </button>
-        </div>
+            <Text style={[styles.tabText, activeTab === 'contacts' && styles.activeTabText]}>Contacts</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Search Bar */}
-        <div className="flex items-center p-3 rounded-lg mb-4" style={{ backgroundColor: THEME_COLORS.inputBackground }}>
-          {React.cloneElement(IconSearch, { style: { color: THEME_COLORS.textPlaceholder }})}
-          <input
-            type="text"
+        <View style={styles.searchBar}>
+          <SvgXml xml={IconSearch} width={20} height={20} color={THEME_COLORS.textPlaceholder} />
+          <TextInput
             placeholder="Search by name or number"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-transparent border-none focus:outline-none flex-grow ml-2 text-sm"
-            style={{ color: THEME_COLORS.textPrimary, caretColor: THEME_COLORS.primaryAction }}
+            onChangeText={setSearchTerm}
+            style={styles.searchInput}
+            placeholderTextColor={THEME_COLORS.textPlaceholder}
           />
-        </div>
+        </View>
 
         {/* Contacts List */}
-        <div className="space-y-1">
-          {filteredContacts.map(contact => (
-            <div 
-                key={contact.id} 
-                className="flex items-center justify-between p-3 rounded-lg hover:opacity-80 cursor-pointer transition-colors duration-150" 
-                style={{backgroundColor: searchTerm && contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ? THEME_COLORS.surfaceLight : 'transparent' }}
-                onClick={() => handleContactSelect(contact)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleContactSelect(contact)}
+        <FlatList
+          data={filteredContacts}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+                style={[styles.contactItem, searchTerm && item.name.toLowerCase().includes(searchTerm.toLowerCase()) ? styles.highlightedContact : null]}
+                onPress={() => handleContactSelect(item)}
             >
-              <div className="flex items-center">
-                <div 
-                    className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 font-semibold text-white ${contact.avatarColor}`}
-                >
-                  {contact.avatarInitials}
-                </div>
-                <div>
-                  <p className="font-medium text-sm flex items-center">
-                    {contact.name}
-                    {contact.isFavorite && activeTab === 'contacts' && <IconStar className="ml-1.5 w-3 h-3" />}
-                  </p>
-                  <p className="text-xs" style={{ color: THEME_COLORS.textSecondary }}>{contact.upiId}</p>
-                </div>
-              </div>
-              <button className="p-1 text-gray-500 hover:text-gray-300" style={{ color: THEME_COLORS.textSecondary }} aria-label="More options">
-                {IconDotsVertical}
-              </button>
-            </div>
-          ))}
-          {filteredContacts.length === 0 && (
-            <p className="text-center text-sm py-4" style={{ color: THEME_COLORS.textSecondary }}>
-              No contacts found.
-            </p>
+              <View style={styles.contactInfo}>
+                <View style={[styles.avatar, { backgroundColor: item.avatarColor }]}>
+                  <Text style={styles.avatarText}>{item.avatarInitials}</Text>
+                </View>
+                <View>
+                  <View style={styles.contactNameContainer}>
+                    <Text style={styles.contactName}>{item.name}</Text>
+                    {item.isFavorite && activeTab === 'contacts' && <SvgXml xml={IconStar} width={12} height={12} style={{ marginLeft: 6 }} />}
+                  </View>
+                  <Text style={styles.contactUpi}>{item.upiId}</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.moreButton}>
+                <SvgXml xml={IconDotsVertical} width={20} height={20} color={THEME_COLORS.textSecondary} />
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
-        </div>
-      </div>
+          ListEmptyComponent={<Text style={styles.emptyListText}>No contacts found.</Text>}
+        />
+      </View>
 
       <NumericKeypad onKeyPress={handleNumericKeyPress} />
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  header: {
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.surface,
+  },
+  backButton: {
+    padding: 8,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  countryCode: {
+    fontSize: 28,
+    color: THEME_COLORS.textSecondary,
+    marginRight: 8,
+  },
+  input: {
+    fontSize: 28,
+    color: THEME_COLORS.textPrimary,
+    flex: 1,
+    letterSpacing: 2,
+  },
+  proceedButton: {
+    marginTop: 8,
+    marginBottom: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.primaryAction,
+  },
+  proceedButtonText: {
+    color: 'black',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  linkText: {
+    color: THEME_COLORS.textLink,
+    textAlign: 'center',
+    marginVertical: 12,
+    fontSize: 14,
+  },
+  tabs: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeTab: {
+    borderColor: THEME_COLORS.primaryAction,
+  },
+  tabText: {
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME_COLORS.textSecondary,
+  },
+  activeTabText: {
+    color: THEME_COLORS.primaryAction,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.inputBackground,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 14,
+    color: THEME_COLORS.textPrimary,
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 8,
+  },
+  highlightedContact: {
+    backgroundColor: THEME_COLORS.surfaceLight,
+  },
+  contactInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  contactNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  contactName: {
+    fontWeight: '500',
+    fontSize: 14,
+    color: THEME_COLORS.textPrimary,
+  },
+  contactUpi: {
+    fontSize: 12,
+    color: THEME_COLORS.textSecondary,
+  },
+  moreButton: {
+    padding: 4,
+  },
+  emptyListText: {
+    textAlign: 'center',
+    fontSize: 14,
+    paddingVertical: 16,
+    color: THEME_COLORS.textSecondary,
+  },
+});
 
 export default SendMoneyScreen;

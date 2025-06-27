@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Modal from './Modal';
 import { THEME_COLORS } from '../constants';
 
@@ -13,10 +14,9 @@ const RequestMoneyModal: React.FC<RequestMoneyModalProps> = ({ isOpen, onClose, 
   const [amount, setAmount] = useState('');
   const [remarks, setRemarks] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!upiId || !amount) {
-        alert("Payer UPI ID and Amount are required."); // Consider a themed notification
+        Alert.alert("Payer UPI ID and Amount are required.");
         return;
     }
     onSubmit({ upiId, amount, remarks });
@@ -24,80 +24,102 @@ const RequestMoneyModal: React.FC<RequestMoneyModalProps> = ({ isOpen, onClose, 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Request Money">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="payerUpiId" className="block text-sm font-medium" style={{color: THEME_COLORS.textSecondary}}>Payer UPI ID</label>
-          <input
-            type="text"
-            id="payerUpiId"
+      <View style={styles.form}>
+        <View>
+          <Text style={styles.label}>Payer UPI ID</Text>
+          <TextInput
             value={upiId}
-            onChange={(e) => setUpiId(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 sm:text-sm"
-            style={{ 
-              backgroundColor: THEME_COLORS.inputBackground, 
-              borderColor: '#4A4A4C', // Slightly lighter border for input
-              color: THEME_COLORS.textPrimary,
-              caretColor: THEME_COLORS.primaryAction,
-            }}
+            onChangeText={setUpiId}
+            style={styles.input}
             placeholder="name@upi"
-            required
+            placeholderTextColor={THEME_COLORS.textPlaceholder}
           />
-        </div>
-        <div>
-          <label htmlFor="requestAmount" className="block text-sm font-medium" style={{color: THEME_COLORS.textSecondary}}>Amount (₹)</label>
-          <input
-            type="number"
-            id="requestAmount"
+        </View>
+        <View>
+          <Text style={styles.label}>Amount (₹)</Text>
+          <TextInput
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 sm:text-sm"
-             style={{ 
-              backgroundColor: THEME_COLORS.inputBackground, 
-              borderColor: '#4A4A4C',
-              color: THEME_COLORS.textPrimary,
-              caretColor: THEME_COLORS.primaryAction,
-            }}
+            onChangeText={setAmount}
+            style={styles.input}
             placeholder="0.00"
-            required
+            placeholderTextColor={THEME_COLORS.textPlaceholder}
+            keyboardType="numeric"
           />
-        </div>
-        <div>
-          <label htmlFor="requestRemarks" className="block text-sm font-medium" style={{color: THEME_COLORS.textSecondary}}>Remarks (Optional)</label>
-          <input
-            type="text"
-            id="requestRemarks"
+        </View>
+        <View>
+          <Text style={styles.label}>Remarks (Optional)</Text>
+          <TextInput
             value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 sm:text-sm"
-            style={{ 
-              backgroundColor: THEME_COLORS.inputBackground, 
-              borderColor: '#4A4A4C',
-              color: THEME_COLORS.textPrimary,
-              caretColor: THEME_COLORS.primaryAction,
-            }}
+            onChangeText={setRemarks}
+            style={styles.input}
             placeholder="e.g., Shared expenses"
+            placeholderTextColor={THEME_COLORS.textPlaceholder}
           />
-        </div>
-        <div className="flex justify-end space-x-3 pt-2">
-            <button
-                type="button"
-                onClick={onClose}
-                className={`px-4 py-2 text-sm font-medium rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                style={{ backgroundColor: THEME_COLORS.surfaceLight, color: THEME_COLORS.textPrimary, borderColor: THEME_COLORS.primaryAction }}
+        </View>
+        <View style={styles.buttonContainer}>
+            <TouchableOpacity
+                onPress={onClose}
+                style={[styles.button, styles.cancelButton]}
             >
-                Cancel
-            </button>
-            <button
-                type="submit"
-                className={`text-white px-4 py-2 text-sm font-medium rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                style={{ backgroundColor: THEME_COLORS.primaryAction, color: 'black' }} // Orange button text usually black for contrast
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={handleSubmit}
+                style={[styles.button, styles.submitButton]}
             >
-                Request
-            </button>
-        </div>
-      </form>
+                <Text style={styles.submitButtonText}>Request</Text>
+            </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  form: {
+    padding: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: THEME_COLORS.textSecondary,
+    marginBottom: 8,
+  },
+  input: {
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.inputBackground,
+    borderColor: '#4A4A4C',
+    color: THEME_COLORS.textPrimary,
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginLeft: 12,
+  },
+  cancelButton: {
+    backgroundColor: THEME_COLORS.surfaceLight,
+  },
+  cancelButtonText: {
+    color: THEME_COLORS.textPrimary,
+    fontWeight: '500',
+  },
+  submitButton: {
+    backgroundColor: THEME_COLORS.primaryAction,
+  },
+  submitButtonText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+});
 
 export default RequestMoneyModal;

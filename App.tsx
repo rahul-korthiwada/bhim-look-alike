@@ -1,5 +1,5 @@
-
 import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { Screen, ModalType, UserProfile, BankAccount, PaymentFlowData, Contact } from './types';
 import { MOCK_USER_PROFILE, THEME_COLORS, APP_NAME } from './constants';
 import Header from './components/Header';
@@ -58,7 +58,6 @@ const App: React.FC = () => {
     setSelectedAccountForBalance(null);
     if (notification && wasNotification) { 
         setNotification(null);
-        // Special handling for post-payment notifications is removed as we navigate to dedicated screens.
     }
   }, [notification, activeModal]);
 
@@ -96,7 +95,7 @@ const App: React.FC = () => {
         aadhar: "123412341234", // Hardcoded
         email: userProfile.email || "user@example.com", // From profile or hardcoded
         MOBILENO: userProfile.phoneNumber.replace(/\D/g, ''), // Ensure only digits
-        ACCOUNTNUMBER: updatedPaymentData.selectedAccount.fullAccountNumber || "455909610144", // From selected account or hardcoded
+        ACCOUNTNUMBER: updatedPaymentData.selectedAccount?.fullAccountNumber || "455909610144", // From selected account or hardcoded
         CARDNUMBER: "309944" // Hardcoded
     };
 
@@ -107,11 +106,10 @@ const App: React.FC = () => {
             body: JSON.stringify(apiPayload)
         });
 
-        if (response.ok) { // Assuming 2xx status means success (no fraud)
+        if (response.ok) { 
             setPaymentFlowData(prev => prev ? ({ ...prev, paymentStatus: 'success' }) : null);
             handleNavigation(Screen.PaymentSuccess);
         } else {
-            // Any non-2xx response from API is treated as failure/fraud for this simulation
             setPaymentFlowData(prev => prev ? ({ ...prev, paymentStatus: 'failed', failureReason: "Blocked due to security reasons." }) : null);
             handleNavigation(Screen.PaymentFailure);
         }
@@ -119,8 +117,6 @@ const App: React.FC = () => {
         console.error("API call failed:", error);
         setPaymentFlowData(prev => prev ? ({ ...prev, paymentStatus: 'failed', failureReason: "Payment failed due to a network error. Please try again." }) : null);
         handleNavigation(Screen.PaymentFailure);
-    } finally {
-       //setIsProcessingPayment(false); // Processing ends when navigating to success/failure screen, reset via explicit actions like retry/home.
     }
   }, [paymentFlowData, userProfile, handleNavigation, isProcessingPayment]);
 
@@ -128,13 +124,10 @@ const App: React.FC = () => {
   const renderScreen = () => {
     if (isProcessingPayment && currentScreen === Screen.EnterPin) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-white p-4" style={{ backgroundColor: THEME_COLORS.pinInputBackground }}>
-                <div 
-                  className="animate-spin rounded-full h-12 w-12 border-b-2"
-                  style={{ borderColor: THEME_COLORS.primaryAction }}
-                ></div>
-                <p className="mt-4 text-lg" style={{color: THEME_COLORS.pinInputText}}>Processing Payment...</p>
-            </div>
+            <View style={styles.processingContainer}>
+                <ActivityIndicator size="large" color={THEME_COLORS.primaryAction} />
+                <Text style={styles.processingText}>Processing Payment...</Text>
+            </View>
         );
     }
     
@@ -236,15 +229,13 @@ const App: React.FC = () => {
     ].includes(currentScreen);
 
   return (
-    <div className="flex justify-center items-center min-h-screen" style={{ backgroundColor: '#333' }}>
-      <div 
-        className="w-full max-w-sm h-[800px] max-h-[90vh] flex flex-col shadow-2xl rounded-3xl overflow-hidden border-8 border-black"
-        style={{ backgroundColor: THEME_COLORS.background }}
-      >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={THEME_COLORS.background} />
+      <View style={styles.appContainer}>
         {showChrome && <Header userProfile={userProfile} onNavigate={handleNavigation} />}
-        <main className="flex-grow overflow-y-auto flex flex-col" style={{ backgroundColor: THEME_COLORS.background }}>
+        <View style={styles.mainContent}>
           {renderScreen()}
-        </main>
+        </View>
         {showChrome && <BottomNav currentScreen={currentScreen} onNavigate={handleNavigation} />}
 
         {activeModal === ModalType.RequestMoney && (
@@ -273,9 +264,34 @@ const App: React.FC = () => {
                 message={notification.message}
             />
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#333',
+  },
+  appContainer: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  mainContent: {
+    flex: 1,
+  },
+  processingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: THEME_COLORS.pinInputBackground,
+  },
+  processingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: THEME_COLORS.pinInputText,
+  },
+});
 
 export default App;

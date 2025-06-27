@@ -1,5 +1,8 @@
 import React from 'react';
-import { IconClose, THEME_COLORS } from '../constants';
+import { View, Text, TouchableOpacity, StyleSheet, Modal as RNModal } from 'react-native';
+import { SvgXml } from 'react-native-svg';
+import { THEME_COLORS } from '../constants';
+import { IconClose } from '../assets/icons';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,26 +12,70 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-      <div 
-        className="rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col"
-        style={{ backgroundColor: THEME_COLORS.surface, color: THEME_COLORS.textPrimary }}
-      >
-        <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: THEME_COLORS.surfaceLight }}>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="hover:opacity-75" style={{ color: THEME_COLORS.textSecondary }}>
-            {IconClose}
-          </button>
-        </div>
-        <div className="p-6 overflow-y-auto">
-          {children}
-        </div>
-      </div>
-    </div>
+    <RNModal
+      animationType="slide"
+      transparent={true}
+      visible={isOpen}
+      onRequestClose={onClose}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <View style={styles.header}>
+            <Text style={styles.modalText}>{title}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <SvgXml xml={IconClose} width={24} height={24} color={THEME_COLORS.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.content}>
+            {children}
+          </View>
+        </View>
+      </View>
+    </RNModal>
   );
 };
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: THEME_COLORS.surface,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '90%',
+    maxHeight: '90%',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: THEME_COLORS.surfaceLight,
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+  },
+  content: {
+    // The content will scroll if it overflows
+  },
+});
 
 export default Modal;

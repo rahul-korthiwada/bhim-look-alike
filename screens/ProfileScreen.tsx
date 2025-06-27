@@ -1,6 +1,9 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { UserProfile, BankAccount } from '../types';
-import { THEME_COLORS, IconChevronRight } from '../constants';
+import { THEME_COLORS } from '../constants';
+import { IconChevronRight } from '../assets/icons';
 
 interface ProfileScreenProps {
   userProfile: UserProfile;
@@ -9,91 +12,234 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userProfile, onCheckBalance }) => {
   return (
-    <div className="flex-grow" style={{backgroundColor: THEME_COLORS.background, color: THEME_COLORS.textPrimary}}>
+    <ScrollView style={styles.container}>
       {/* Profile Header */}
-      <div className="p-6 text-center rounded-b-xl shadow-lg" style={{backgroundColor: THEME_COLORS.surface}}>
-        <div 
-            className="w-24 h-24 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden font-bold text-4xl"
-            style={{backgroundColor: THEME_COLORS.pkAvatarBg, color: THEME_COLORS.textPrimary}}
-        >
-          {userProfile.initials}
-        </div>
-        <h2 className="text-2xl font-semibold">{userProfile.name}</h2>
-        <p className="text-sm opacity-90" style={{color: THEME_COLORS.textSecondary}}>{userProfile.upiId}</p>
-        <p className="text-xs opacity-80" style={{color: THEME_COLORS.textSecondary}}>{userProfile.phoneNumber}</p>
-      </div>
+      <View style={styles.profileHeader}>
+        <View style={[styles.avatar, {backgroundColor: THEME_COLORS.pkAvatarBg}]}>
+          <Text style={styles.avatarText}>{userProfile.initials}</Text>
+        </View>
+        <Text style={styles.userName}>{userProfile.name}</Text>
+        <Text style={styles.upiId}>{userProfile.upiId}</Text>
+        <Text style={styles.phoneNumber}>{userProfile.phoneNumber}</Text>
+      </View>
 
       {/* Linked Accounts */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold mb-3 px-2" style={{color: THEME_COLORS.textSecondary}}>Linked Bank Accounts</h3>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Linked Bank Accounts</Text>
         {userProfile.linkedAccounts.map(account => (
-          <div key={account.id} className="p-4 rounded-lg shadow mb-3" style={{backgroundColor: THEME_COLORS.surfaceLight}}>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
+          <View key={account.id} style={styles.accountItem}>
+            <View style={styles.accountDetails}>
+              <View style={styles.accountInfo}>
                  {account.bankLogoUrl ? (
-                    <img src={account.bankLogoUrl} alt={`${account.bankName} logo`} className="w-8 h-8 mr-3 rounded-full bg-white p-0.5" />
+                    <Image source={{ uri: account.bankLogoUrl }} style={styles.bankLogo} />
                   ) : (
-                    <div className="w-8 h-8 mr-3 rounded-full bg-gray-700 flex items-center justify-center text-sm">?</div>
+                    <View style={styles.bankLogoPlaceholder} />
                  )}
-                <div>
-                  <p className="font-medium">{account.bankName}</p>
-                  <p className="text-sm" style={{color: THEME_COLORS.textSecondary}}>Ac/No: XXXX XXXX XXXX {account.accountNumberLast4}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => onCheckBalance(account)}
-                className={`text-xs px-3 py-1.5 rounded-md hover:opacity-90 focus:outline-none font-semibold`}
-                style={{backgroundColor: THEME_COLORS.primaryAction, color: 'black'}}
+                <View>
+                  <Text style={styles.bankName}>{account.bankName}</Text>
+                  <Text style={styles.accountNumber}>Ac/No: XXXX XXXX XXXX {account.accountNumberLast4}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => onCheckBalance(account)}
+                style={styles.checkBalanceButton}
               >
-                Check Balance
-              </button>
-            </div>
+                <Text style={styles.checkBalanceButtonText}>Check Balance</Text>
+              </TouchableOpacity>
+            </View>
             {account.isPrimary && (
-              <span className="mt-2 inline-block bg-green-700 bg-opacity-30 text-green-300 text-xs font-semibold px-2 py-0.5 rounded-full">
-                Primary Account
-              </span>
+              <Text style={styles.primaryBadge}>Primary Account</Text>
             )}
-          </div>
+          </View>
         ))}
-         <button 
-            className={`mt-2 w-full text-sm py-2.5 rounded-md hover:opacity-80 font-medium border`}
-            style={{
-                backgroundColor: 'transparent', //THEME_COLORS.surfaceLight, 
-                color: THEME_COLORS.primaryAction, 
-                borderColor: THEME_COLORS.primaryAction
-            }}
-        >
-          + Add New Account
-        </button>
-      </div>
+         <TouchableOpacity style={styles.addButton}>
+          <Text style={styles.addButtonText}>+ Add New Account</Text>
+        </TouchableOpacity>
+      </View>
       
       {/* Settings Options */}
-      <div className="p-4">
-         <h3 className="text-lg font-semibold mb-3 px-2" style={{color: THEME_COLORS.textSecondary}}>Settings & Preferences</h3>
-         <div className="rounded-lg shadow overflow-hidden" style={{backgroundColor: THEME_COLORS.surfaceLight}}>
+      <View style={styles.section}>
+         <Text style={styles.sectionTitle}>Settings & Preferences</Text>
+         <View style={styles.settingsContainer}>
             {['Manage UPI IDs', 'Change Language', 'App Lock', 'Notifications', 'Help & Support'].map(item => (
-                 <button 
+                 <TouchableOpacity 
                     key={item} 
-                    className="w-full text-left px-4 py-3 border-b last:border-b-0 hover:opacity-80 flex justify-between items-center transition-opacity"
-                    style={{borderColor: THEME_COLORS.background, color: THEME_COLORS.textPrimary}}
+                    style={styles.settingsItem}
                   >
-                    <span>{item}</span>
-                    {React.cloneElement(IconChevronRight, { className: "w-4 h-4", style:{color: THEME_COLORS.textSecondary}})}
-                 </button>
+                    <Text style={styles.settingsItemText}>{item}</Text>
+                    <SvgXml xml={IconChevronRight} width={16} height={16} color={THEME_COLORS.textSecondary} />
+                 </TouchableOpacity>
             ))}
-         </div>
-      </div>
+         </View>
+      </View>
 
-      <div className="p-4 text-center">
-        <button 
-            className="bg-red-600 text-white px-6 py-2.5 rounded-md hover:bg-red-700 focus:outline-none w-full sm:w-auto font-medium"
-        >
-            Logout
-        </button>
-        <p className="text-xs mt-4" style={{color: THEME_COLORS.textPlaceholder}}>App Version 2.5.1</p>
-      </div>
-    </div>
+      <View style={styles.logoutSection}>
+        <TouchableOpacity style={styles.logoutButton}>
+            <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+        <Text style={styles.appVersion}>App Version 2.5.1</Text>
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  profileHeader: {
+    padding: 24,
+    alignItems: 'center',
+    backgroundColor: THEME_COLORS.surface,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  avatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  avatarText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+  },
+  upiId: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+  },
+  phoneNumber: {
+    fontSize: 12,
+    color: THEME_COLORS.textSecondary,
+  },
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textSecondary,
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  accountItem: {
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    backgroundColor: THEME_COLORS.surfaceLight,
+  },
+  accountDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  accountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bankLogo: {
+    width: 32,
+    height: 32,
+    marginRight: 12,
+    borderRadius: 16,
+    backgroundColor: 'white',
+    padding: 2,
+  },
+  bankLogoPlaceholder: {
+    width: 32,
+    height: 32,
+    marginRight: 12,
+    borderRadius: 16,
+    backgroundColor: 'gray',
+  },
+  bankName: {
+    fontWeight: '500',
+    color: THEME_COLORS.textPrimary,
+  },
+  accountNumber: {
+    fontSize: 14,
+    color: THEME_COLORS.textSecondary,
+  },
+  checkBalanceButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.primaryAction,
+  },
+  checkBalanceButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  primaryBadge: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 255, 0, 0.2)',
+    color: 'lightgreen',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  addButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.primaryAction,
+  },
+  addButtonText: {
+    color: THEME_COLORS.primaryAction,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  settingsContainer: {
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.surfaceLight,
+    overflow: 'hidden',
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: THEME_COLORS.background,
+  },
+  settingsItemText: {
+    color: THEME_COLORS.textPrimary,
+  },
+  logoutSection: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: 'red',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  appVersion: {
+    marginTop: 16,
+    fontSize: 12,
+    color: THEME_COLORS.textPlaceholder,
+  },
+});
 
 export default ProfileScreen;

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { SvgXml } from 'react-native-svg';
 import { UserProfile, BankAccount, PaymentFlowData } from '../types';
-import { THEME_COLORS, IconChevronLeft, IconSoundOn, IconCheckCircle, IconRadioButtonUnchecked } from '../constants';
+import { THEME_COLORS } from '../constants';
+import { IconChevronLeft, IconSoundOn, IconCheckCircle, IconRadioButtonUnchecked } from '../assets/icons';
 
 interface SelectAccountScreenProps {
   paymentDetails: PaymentFlowData;
@@ -29,93 +32,223 @@ const SelectAccountScreen: React.FC<SelectAccountScreenProps> = ({
   const avatarBg = paymentDetails.recipientAvatarColor || THEME_COLORS.pkAvatarBg;
 
   return (
-    <div className="flex flex-col h-full" style={{ backgroundColor: THEME_COLORS.background, color: THEME_COLORS.textPrimary }}>
+    <View style={styles.container}>
       {/* Header */}
-      <div className="p-3 flex items-center justify-between sticky top-0 z-10" style={{ backgroundColor: THEME_COLORS.surface }}>
-        <button onClick={onBack} className="p-2" aria-label="Go back">
-          {IconChevronLeft}
-        </button>
-         <div className="flex items-center">
-            <button className="text-xs hover:underline" style={{color: THEME_COLORS.textLink}}>Previous History</button>
-            <button className="p-2 ml-2 text-gray-400 hover:text-white" aria-label="Toggle Sound">
-                {IconSoundOn}
-            </button>
-        </div>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <SvgXml xml={IconChevronLeft} width={24} height={24} color={THEME_COLORS.textPrimary} />
+        </TouchableOpacity>
+         <View style={styles.headerRight}>
+            <TouchableOpacity>
+              <Text style={styles.linkText}>Previous History</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.soundButton}>
+                <SvgXml xml={IconSoundOn} width={24} height={24} color={THEME_COLORS.textSecondary} />
+            </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Content Area */}
-      <div className="flex-grow p-4 flex flex-col overflow-y-auto">
+      <View style={styles.content}>
         {/* Recipient and Amount Display */}
-        <div className="flex flex-col items-center mb-6 mt-4">
-            <div 
-                className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-semibold mb-2"
-                style={{ backgroundColor: avatarBg, color: THEME_COLORS.textPrimary }}
-            >
-                {paymentDetails.recipientInitials || '??'}
-            </div>
-            <p className="text-sm" style={{color: THEME_COLORS.textSecondary}}>Paying <span className="font-semibold" style={{color: THEME_COLORS.textPrimary}}>{paymentDetails.recipientName}</span></p>
-            <p className="text-xs mb-3" style={{ color: THEME_COLORS.textSecondary }}>
-                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
-                {paymentDetails.recipientUpiId}
-            </p>
-            <p className="text-4xl font-light" style={{color: THEME_COLORS.textPrimary}}>₹{paymentDetails.amount}</p>
-            {paymentDetails.remarks && <p className="text-xs mt-1 p-1.5 px-2.5 rounded-full" style={{backgroundColor: THEME_COLORS.surfaceLight, color: THEME_COLORS.textSecondary}}>{paymentDetails.remarks}</p>}
-        </div>
+        <View style={styles.recipientContainer}>
+            <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
+                <Text style={styles.avatarText}>{paymentDetails.recipientInitials || '??'}</Text>
+            </View>
+            <Text style={styles.recipientName}>Paying {paymentDetails.recipientName}</Text>
+            <Text style={styles.recipientUpi}>{paymentDetails.recipientUpiId}</Text>
+            <Text style={styles.amount}>₹{paymentDetails.amount}</Text>
+            {paymentDetails.remarks && <Text style={styles.remarks}>{paymentDetails.remarks}</Text>}
+        </View>
 
         {/* Account Selection */}
-        <div className="mb-auto"> {/* Pushes content up, and button to bottom if space allows */}
-          <h3 className="text-sm font-semibold mb-3 px-1" style={{color: THEME_COLORS.textSecondary}}>Select account to pay with</h3>
-          <p className="text-xs mb-1 px-1 font-medium" style={{color: THEME_COLORS.textPrimary}}>Bank Account</p>
+        <View style={styles.accountSelectionContainer}>
+          <Text style={styles.sectionTitle}>Select account to pay with</Text>
+          <Text style={styles.subSectionTitle}>Bank Account</Text>
           
           {userProfile.linkedAccounts.map(account => (
-            <button
+            <TouchableOpacity
               key={account.id}
-              onClick={() => setSelectedAccount(account)}
-              className={`w-full p-4 rounded-lg shadow mb-3 text-left flex items-center justify-between transition-all duration-150 ease-in-out
-                ${selectedAccount?.id === account.id ? `ring-2 ring-offset-2 ring-offset-black ring-[${THEME_COLORS.primaryAction}]` : ''}`}
-              style={{ 
-                backgroundColor: THEME_COLORS.surfaceDarker,
-              }}
-              aria-pressed={selectedAccount?.id === account.id}
+              onPress={() => setSelectedAccount(account)}
+              style={[styles.accountItem, selectedAccount?.id === account.id && styles.selectedAccountItem]}
             >
-              <div className="flex items-center">
+              <View style={styles.accountInfo}>
                 {account.bankLogoUrl ? (
-                  <img src={account.bankLogoUrl} alt={`${account.bankName} logo`} className="w-8 h-8 mr-3 rounded-full bg-white p-0.5" />
+                  <Image source={{ uri: account.bankLogoUrl }} style={styles.bankLogo} />
                 ) : (
-                  <div className="w-8 h-8 mr-3 rounded-full bg-gray-700 flex items-center justify-center text-sm">?</div>
+                  <View style={styles.bankLogoPlaceholder} />
                 )}
-                <div>
-                  <p className="font-medium text-sm">{account.bankName}</p>
-                  <p className="text-xs" style={{ color: THEME_COLORS.textSecondary }}>
-                    XX{account.accountNumberLast4} {account.isPrimary && <span className="text-green-400 font-medium opacity-80">∙ DEFAULT</span>}
-                  </p>
-                   <button 
-                    onClick={(e) => { e.stopPropagation(); onCheckBalance(account); }} 
-                    className="text-xs mt-0.5 hover:underline" style={{color: THEME_COLORS.textLink}}
-                  >
-                    Check Balance
-                  </button>
-                </div>
-              </div>
-              {selectedAccount?.id === account.id ? 
-                React.cloneElement(IconCheckCircle, {className: "w-6 h-6", style: {color: THEME_COLORS.primaryAction}}) :
-                React.cloneElement(IconRadioButtonUnchecked, {className: "w-6 h-6", style: {color: THEME_COLORS.textSecondary}})
-              }
-            </button>
+                <View>
+                  <Text style={styles.bankName}>{account.bankName}</Text>
+                  <Text style={styles.accountNumber}>
+                    XX{account.accountNumberLast4} {account.isPrimary && <Text style={styles.defaultText}>∙ DEFAULT</Text>}
+                  </Text>
+                   <TouchableOpacity onPress={(e) => { e.stopPropagation(); onCheckBalance(account); }}>
+                    <Text style={styles.linkText}>Check Balance</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <SvgXml xml={selectedAccount?.id === account.id ? IconCheckCircle : IconRadioButtonUnchecked} width={24} height={24} color={selectedAccount?.id === account.id ? THEME_COLORS.primaryAction : THEME_COLORS.textSecondary} />
+            </TouchableOpacity>
           ))}
-        </div>
+        </View>
         
-        <button
-            onClick={handlePay}
-            className="w-full py-3.5 mt-4 rounded-lg text-base font-semibold shadow-md active:scale-95 transition-transform"
-            style={{ backgroundColor: THEME_COLORS.primaryAction, color: 'black' }}
+        <TouchableOpacity
+            onPress={handlePay}
+            style={styles.payButton}
             disabled={!selectedAccount}
         >
-            Pay ₹{paymentDetails.amount}
-        </button>
-      </div>
-    </div>
+            <Text style={styles.payButtonText}>Pay ₹{paymentDetails.amount}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: THEME_COLORS.background,
+  },
+  header: {
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: THEME_COLORS.surface,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  linkText: {
+    color: THEME_COLORS.textLink,
+    fontSize: 14,
+  },
+  soundButton: {
+    marginLeft: 16,
+    padding: 8,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  recipientContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+    marginTop: 16,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  avatarText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+  },
+  recipientName: {
+    color: THEME_COLORS.textSecondary,
+  },
+  recipientUpi: {
+    color: THEME_COLORS.textSecondary,
+    marginBottom: 12,
+  },
+  amount: {
+    fontSize: 36,
+    fontWeight: '300',
+    color: THEME_COLORS.textPrimary,
+  },
+  remarks: {
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: THEME_COLORS.surfaceLight,
+    color: THEME_COLORS.textSecondary,
+    fontSize: 12,
+  },
+  accountSelectionContainer: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: THEME_COLORS.textSecondary,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  subSectionTitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: THEME_COLORS.textPrimary,
+    marginBottom: 4,
+    paddingHorizontal: 4,
+  },
+  accountItem: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.surfaceDarker,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedAccountItem: {
+    borderWidth: 2,
+    borderColor: THEME_COLORS.primaryAction,
+  },
+  accountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bankLogo: {
+    width: 32,
+    height: 32,
+    marginRight: 12,
+    borderRadius: 16,
+    backgroundColor: 'white',
+    padding: 2,
+  },
+  bankLogoPlaceholder: {
+    width: 32,
+    height: 32,
+    marginRight: 12,
+    borderRadius: 16,
+    backgroundColor: 'gray',
+  },
+  bankName: {
+    fontWeight: '500',
+    fontSize: 14,
+    color: THEME_COLORS.textPrimary,
+  },
+  accountNumber: {
+    fontSize: 12,
+    color: THEME_COLORS.textSecondary,
+  },
+  defaultText: {
+    color: 'green',
+    fontWeight: '500',
+  },
+  payButton: {
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: THEME_COLORS.primaryAction,
+  },
+  payButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+});
 
 export default SelectAccountScreen;

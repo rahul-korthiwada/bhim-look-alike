@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+#
+# Copyright © 2015-present Facebook, Inc.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+set -e
+
+# Use the default gradlew in the project
+if [ -z "$GRADLE_HOME" ] && [ -f "gradlew" ]; then
+    GRADLE_CMD="./gradlew"
+else
+    GRADLE_CMD="gradle"
+fi
+
+# The `redbox-android` command was removed in 0.73, and now this script is only used for
+# `bundle-android`.
+if [ "$1" = "bundle-android" ]; then
+    echo "error: The 'bundle-android' command was removed in 0.73. Please use 'react-native bundle --platform android' instead."
+    exit 1
+fi
+
+# The `react-native-xcode.sh` script is only used for iOS.
+if [ -f "scripts/react-native-xcode.sh" ]; then
+    sh "scripts/react-native-xcode.sh"
+fi
+
+# The `react-native` script is only used for iOS.
+if [ -f "node_modules/react-native/scripts/react-native.sh" ]; then
+    sh "node_modules/react-native/scripts/react-native.sh"
+fi
+
+# The `react-native` script is only used for iOS.
+if [ -f "node_modules/.bin/react-native" ]; then
+    "node_modules/.bin/react-native" "$@"
+fi

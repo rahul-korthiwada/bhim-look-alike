@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Screen, UserProfile } from '../types';
 import { IconNotificationBell, THEME_COLORS } from '../constants';
 
@@ -10,28 +11,68 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ userProfile, onNavigate }) => {
   
   return (
-    <header style={{ backgroundColor: THEME_COLORS.surface }} className="text-white p-3 flex justify-between items-center shadow-md h-[60px]"> {/* Ensure consistent height */}
+    <View style={styles.header}>
       {/* PK Avatar */}
-      <button 
-        onClick={() => onNavigate(Screen.Home)}
-        className="flex items-center justify-center w-10 h-10 rounded-full font-semibold text-lg"
-        style={{ backgroundColor: THEME_COLORS.pkAvatarBg, color: THEME_COLORS.textPrimary }}
+      <TouchableOpacity 
+        onPress={() => onNavigate(Screen.Home)}
+        style={[styles.avatarButton, { backgroundColor: THEME_COLORS.pkAvatarBg }]}
         aria-label="Go to Home"
       >
-        {userProfile.initials}
-      </button>
+        <Text style={[styles.avatarText, { color: THEME_COLORS.textPrimary }]}>{userProfile.initials}</Text>
+      </TouchableOpacity>
 
       {/* Placeholder for potential title or empty space */}
-      <div className="flex-grow text-center">
+      <View style={styles.titleContainer}>
         {/* Optional: Add a title here if needed in the future */}
-      </div>
+      </View>
 
       {/* Notification Bell */}
-      <button className="p-1 text-gray-300 hover:text-white" aria-label="Notifications">
-        {IconNotificationBell}
-      </button>
-    </header>
+      <TouchableOpacity style={styles.notificationButton} aria-label="Notifications">
+        <View style={styles.notificationIcon}>
+          {IconNotificationBell}
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: THEME_COLORS.surface,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    height: 60,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  notificationButton: {
+    padding: 5,
+  },
+  notificationIcon: {
+    width: 24,
+    height: 24,
+  },
+});
 
 export default Header;

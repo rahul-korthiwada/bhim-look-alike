@@ -1,5 +1,8 @@
 import React from 'react';
-import { THEME_COLORS, IconBackspace } from '../constants';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SvgXml } from 'react-native-svg';
+import { THEME_COLORS } from '../constants';
+import { IconBackspace } from '../assets/icons';
 
 interface PinKeypadProps {
   onKeyPress: (key: string) => void;
@@ -14,21 +17,13 @@ const PinKeyButton: React.FC<{
     isSubmit?: boolean;
 }> = ({ value, onClick, children, isIcon, isSubmit }) => {
   return (
-    <button
-      onClick={onClick}
-      className={`py-4 text-xl font-medium focus:outline-none border border-gray-300 transition-colors
-        ${isSubmit ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-white hover:bg-gray-100 text-black'}
-        active:bg-gray-200`}
-      style={{
-        // For non-submit buttons
-        color: isSubmit ? THEME_COLORS.textPrimary : THEME_COLORS.pinInputText,
-        backgroundColor: isSubmit ? '#4CAF50' : THEME_COLORS.pinInputBackground,
-        borderColor: '#D1D5DB', // gray-300
-      }}
+    <TouchableOpacity
+      onPress={onClick}
+      style={[styles.keyButton, isSubmit && styles.submitButton]}
       aria-label={isIcon ? value : (isSubmit ? 'Submit PIN' : `Number ${value}`)}
     >
-      {children || value}
-    </button>
+      {children || <Text style={[styles.keyText, isSubmit && styles.submitButtonText]}>{value}</Text>}
+    </TouchableOpacity>
   );
 };
 
@@ -41,18 +36,48 @@ const PinKeypad: React.FC<PinKeypadProps> = ({ onKeyPress, onSubmit }) => {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-px" style={{ backgroundColor: '#D1D5DB' /* Keypad border color */ }}>
+    <View style={styles.keypad}>
       {keys.map(key => {
         if (key === 'backspace') {
-          return <PinKeyButton key={key} value={key} onClick={() => onKeyPress(key)} isIcon>{React.cloneElement(IconBackspace, {className: "w-6 h-6 mx-auto", style: {color: THEME_COLORS.pinInputText}})}</PinKeyButton>;
+          return <PinKeyButton key={key} value={key} onClick={() => onKeyPress(key)} isIcon><SvgXml xml={IconBackspace} width={24} height={24} color={THEME_COLORS.pinInputText} /></PinKeyButton>;
         }
         if (key === 'submit') {
-          return <PinKeyButton key={key} value={key} onClick={onSubmit} isSubmit>SUBMIT</PinKeyButton>;
+          return <PinKeyButton key={key} value={key} onClick={onSubmit} isSubmit><Text style={styles.submitButtonText}>SUBMIT</Text></PinKeyButton>;
         }
-        return <PinKeyButton key={key} value={key} onClick={() => onKeyPress(key)}>{key}</PinKeyButton>;
+        return <PinKeyButton key={key} value={key} onClick={() => onKeyPress(key)}><Text style={styles.keyText}>{key}</Text></PinKeyButton>;
       })}
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  keypad: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    backgroundColor: '#D1D5DB',
+  },
+  keyButton: {
+    width: '33.33%',
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: THEME_COLORS.pinInputBackground,
+    borderWidth: 0.5,
+    borderColor: '#D1D5DB',
+  },
+  keyText: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: THEME_COLORS.pinInputText,
+  },
+  submitButton: {
+    backgroundColor: '#4CAF50',
+  },
+  submitButtonText: {
+    color: THEME_COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
 
 export default PinKeypad;

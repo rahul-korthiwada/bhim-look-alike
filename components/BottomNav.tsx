@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Screen } from '../types';
 import { IconOffers, IconScan, IconHistory, THEME_COLORS } from '../constants';
 
@@ -8,10 +9,10 @@ interface BottomNavProps {
 }
 
 interface NavItemProps {
-  icon: React.ReactElement<React.SVGProps<SVGSVGElement>>; // Changed type here
+  icon: React.ReactElement;
   label: string;
   screen: Screen;
-  isActive: boolean; // Not directly used for selection color, but can be for other states
+  isActive: boolean;
   onClick: (screen: Screen) => void;
   isCentralButton?: boolean;
 }
@@ -21,39 +22,38 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, screen, onClick, isCentr
   
   if (isCentralButton) {
     return (
-      <button
-        onClick={() => onClick(screen)}
-        className="flex flex-col items-center justify-center flex-1 focus:outline-none relative -top-4"
+      <TouchableOpacity
+        onPress={() => onClick(screen)}
+        style={styles.centralButton}
         aria-label={label}
       >
-        <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: THEME_COLORS.primaryAction }}>
-          {React.cloneElement(icon, { className: "w-8 h-8", style: { color: textColor }})}
-        </div>
-        <span className={`text-xs mt-1 font-semibold`} style={{ color: THEME_COLORS.primaryAction }}>{label}</span>
-      </button>
+        <View style={[styles.centralIconContainer, { backgroundColor: THEME_COLORS.primaryAction }]}>
+          {React.cloneElement(icon, { width: 32, height: 32, color: textColor })}
+        </View>
+        <Text style={[styles.centralLabel, { color: THEME_COLORS.primaryAction }]}>{label}</Text>
+      </TouchableOpacity>
     );
   }
 
   return (
-    <button
-      onClick={() => onClick(screen)}
-      className={`flex flex-col items-center justify-center flex-1 p-2 focus:outline-none hover:opacity-80 transition-opacity`}
-      style={{ color: textColor }}
+    <TouchableOpacity
+      onPress={() => onClick(screen)}
+      style={styles.navItem}
       aria-label={label}
     >
-      {icon}
-      <span className="text-xs mt-1">{label}</span>
-    </button>
+      {React.cloneElement(icon, { width: 24, height: 24, color: textColor })}
+      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+    </TouchableOpacity>
   );
 };
 
 const BottomNav: React.FC<BottomNavProps> = ({ currentScreen, onNavigate }) => {
   return (
-    <nav className="flex items-center border-t" style={{ backgroundColor: THEME_COLORS.surface, borderColor: '#2A2A2C', height: '60px' }}>
+    <View style={styles.nav}>
       <NavItem
         icon={IconOffers}
         label="Offers"
-        screen={Screen.Offers} // Navigates to Home for now via App.tsx
+        screen={Screen.Offers}
         isActive={currentScreen === Screen.Offers || currentScreen === Screen.Home}
         onClick={onNavigate}
       />
@@ -72,8 +72,53 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentScreen, onNavigate }) => {
         isActive={currentScreen === Screen.Transactions}
         onClick={onNavigate}
       />
-    </nav>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  nav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    backgroundColor: THEME_COLORS.surface,
+    borderColor: '#2A2A2C',
+    height: 56,
+  },
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  centralButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    top: -15,
+  },
+  centralIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  label: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  centralLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: 'bold',
+  },
+});
 
 export default BottomNav;

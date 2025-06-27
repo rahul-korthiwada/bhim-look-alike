@@ -1,32 +1,33 @@
 import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { Transaction } from '../types';
 import { MOCK_TRANSACTIONS, THEME_COLORS } from '../constants';
 
 const TransactionItem: React.FC<{ transaction: Transaction }> = ({ transaction }) => {
-  const amountColor = transaction.type === 'received' ? 'text-green-400' : 
-                      transaction.type === 'sent' ? 'text-red-400' : 'text-yellow-400';
+  const amountColor = transaction.type === 'received' ? 'green' : 
+                      transaction.type === 'sent' ? 'red' : 'yellow';
   const sign = transaction.type === 'received' ? '+' : transaction.type === 'sent' ? '-' : '';
   
-  const statusColor = transaction.status === 'success' ? 'text-green-500' :
-                      transaction.status === 'pending' ? 'text-yellow-500' : 'text-red-500';
+  const statusColor = transaction.status === 'success' ? 'green' :
+                      transaction.status === 'pending' ? 'yellow' : 'red';
 
   return (
-    <li className="p-4 shadow rounded-lg mb-3 hover:opacity-80 transition-opacity" style={{backgroundColor: THEME_COLORS.surfaceLight}}>
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="font-semibold" style={{color: THEME_COLORS.textPrimary}}>{transaction.partyName}</p>
-          <p className="text-xs" style={{color: THEME_COLORS.textSecondary}}>{transaction.upiId || 'Bill Payment'}</p>
-          <p className="text-xs" style={{color: THEME_COLORS.textSecondary}}>{transaction.date}</p>
-        </div>
-        <div className="text-right">
-          <p className={`font-bold text-lg ${amountColor}`}>
+    <View style={styles.transactionItem}>
+      <View style={styles.transactionDetails}>
+        <View>
+          <Text style={styles.partyName}>{transaction.partyName}</Text>
+          <Text style={styles.upiId}>{transaction.upiId || 'Bill Payment'}</Text>
+          <Text style={styles.date}>{transaction.date}</Text>
+        </View>
+        <View style={styles.amountContainer}>
+          <Text style={[styles.amount, { color: amountColor }]}>
             {sign}₹{transaction.amount.toLocaleString('en-IN')}
-          </p>
-          <p className={`text-xs font-medium ${statusColor}`}>{transaction.status.toUpperCase()}</p>
-        </div>
-      </div>
-      {transaction.description && <p className="text-sm mt-1" style={{color: THEME_COLORS.textSecondary}}>{transaction.description}</p>}
-    </li>
+          </Text>
+          <Text style={[styles.status, { color: statusColor }]}>{transaction.status.toUpperCase()}</Text>
+        </View>
+      </View>
+      {transaction.description && <Text style={styles.description}>{transaction.description}</Text>}
+    </View>
   );
 };
 
@@ -40,37 +41,119 @@ const TransactionsScreen: React.FC = () => {
   });
 
   return (
-    <div className="p-4 flex-grow" style={{backgroundColor: THEME_COLORS.background}}>
-      <h2 className={`text-xl font-semibold mb-4 text-center p-3 rounded-t-lg`} style={{backgroundColor: THEME_COLORS.surface, color: THEME_COLORS.textPrimary}}>Transaction History</h2>
+    <View style={styles.container}>
+      <Text style={styles.title}>Transaction History</Text>
       
-      <div className="mb-4 flex space-x-2 p-2 rounded-lg shadow" style={{backgroundColor: THEME_COLORS.surfaceLight}}>
+      <View style={styles.filterContainer}>
         {(['all', 'sent', 'received', 'pending'] as const).map(f => (
-          <button 
+          <TouchableOpacity 
             key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 text-sm rounded-md font-medium flex-1 transition-colors
-              ${filter === f ? `text-black shadow-sm` : `hover:opacity-80`}`}
-            style={ filter === f ? 
-                {backgroundColor: THEME_COLORS.primaryAction, color: 'black'} : 
-                {backgroundColor: '#3A3A3C', color: THEME_COLORS.textSecondary}
-            }
+            onPress={() => setFilter(f)}
+            style={[styles.filterButton, filter === f && styles.activeFilterButton]}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
+            <Text style={[styles.filterButtonText, filter === f && styles.activeFilterButtonText]}>
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </Text>
+          </TouchableOpacity>
         ))}
-      </div>
+      </View>
 
-      {filteredTransactions.length > 0 ? (
-        <ul>
-          {filteredTransactions.map(tx => (
-            <TransactionItem key={tx.id} transaction={tx} />
-          ))}
-        </ul>
-      ) : (
-        <p className="text-center mt-8" style={{color: THEME_COLORS.textSecondary}}>No transactions found for this filter.</p>
-      )}
-    </div>
+      <FlatList
+        data={filteredTransactions}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => <TransactionItem transaction={item} />}
+        ListEmptyComponent={<Text style={styles.emptyText}>No transactions found for this filter.</Text>}
+      />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: THEME_COLORS.background,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: 12,
+    backgroundColor: THEME_COLORS.surface,
+    color: THEME_COLORS.textPrimary,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: THEME_COLORS.surfaceLight,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    backgroundColor: '#3A3A3C',
+  },
+  activeFilterButton: {
+    backgroundColor: THEME_COLORS.primaryAction,
+  },
+  filterButtonText: {
+    textAlign: 'center',
+    fontWeight: '500',
+    color: THEME_COLORS.textSecondary,
+  },
+  activeFilterButtonText: {
+    color: 'black',
+  },
+  transactionItem: {
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    backgroundColor: THEME_COLORS.surfaceLight,
+  },
+  transactionDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  partyName: {
+    fontWeight: 'bold',
+    color: THEME_COLORS.textPrimary,
+  },
+  upiId: {
+    fontSize: 12,
+    color: THEME_COLORS.textSecondary,
+  },
+  date: {
+    fontSize: 12,
+    color: THEME_COLORS.textSecondary,
+  },
+  amountContainer: {
+    alignItems: 'flex-end',
+  },
+  amount: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  status: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  description: {
+    fontSize: 14,
+    marginTop: 4,
+    color: THEME_COLORS.textSecondary,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 32,
+    color: THEME_COLORS.textSecondary,
+  },
+});
 
 export default TransactionsScreen;
